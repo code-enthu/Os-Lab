@@ -1,0 +1,133 @@
+
+................ Testcases ............................
+
+
+1. Server uninitialized
+
+Hello>getfl abc.txt
+Error: Server data uninitialised
+
+2. Server init
+
+Hello>server localhost 5000
+
+3. getfl 
+
+Hello>getfl foo0.txt
+Lab 4:
+....entire file printed correctly uptil eof....
+
+4. getfl with sigint
+
+Hello>getfl foo0.txt
+Lab 4:
+Roll number: 130050014, 130050031
+Q1.
+	Command: ps -aux|grep bash
+	rawalkh+ 
+^CReceived SIGINT, downloaded 1024 bytes so far
+
+5. gestsq with sigint (only 1 download byte statement, since only 1 process terminated)
+
+Hello>getsq foo0.txt foo1.txt foo2.txt
+^CReceived SIGINT, downloaded 2618 bytes so far
+
+6. getpl with sigint (3 download byte statement for each of the processes)
+
+Hello>getpl foo0.txt foo1.txt foo2.txt
+^CReceived SIGINT, downloaded 2048 bytes so far
+Received SIGINT, downloaded 2048 bytes so far
+Received SIGINT, downloaded 2048 bytes so far
+
+7. getbg 
+
+Hello>getbg foo0.txt
+
+
+a) background process running (ps output)
+Palak  4731  4725  4731      0    1 S+   s003    0:00.01 ./client-shell
+Palak  4898  4731  4731      0    1 S+   s003    0:00.00 ./get-one-file-sig foo0.txt localhost 5000 nodisplay
+
+Hello>^C
+b)sigint has no effect on bg process
+Palak  4731  4725  4731      0    1 S+   s003    0:00.01 ./client-shell
+Palak  4898  4731  4731      0    1 S+   s003    0:00.00 ./get-one-file-sig foo0.txt localhost 5000 nodisplay
+
+c) Once file download finished, bg process turns to zombie before being reaped
+Palak  4731  4725  4731      0    1 S+   s003    0:00.01 ./client-shell
+Palak  4898  4731  4731      0    1 Z+   s003    0:00.00 (get-one-file-sig)
+
+Hello>getbg foo1.txt
+d) background process reaped at this time, following displayed on client-shell
+
+Hello>Background process with pid:4898 completed successfully!
+
+8. Pipe
+
+Hello>getfl foo0.txt | cat
+Lab 4:
+Roll number: 130050014, 130050031
+..........file printed correctly uptil eof..................
+ 
+Hello>Background process with pid:4925 completed successfully!
+
+Hello>getfl foo0.txt | wc -l
+      65
+
+
+9. Basic shell commands
+
+Hello>cd ..
+Hello>ls
+a.out			client-shell.c		foo0.txt		get-one-file-sig.c	new
+client-shell		dump.txt		get-one-file-sig	lab5.pdf		out
+
+10. Redirection with SIGINT
+
+Hello>getfl foo0.txt > out1.txt
+^CReceived SIGINT, downloaded 1024 bytes so far
+
+Hello>cat out1.txt
+Lab 4:
+
+Roll number: 130050014, 130050031
+.....only part of the content printed to out1.txt .........
+
+11. Reaping bg processes
+
+Hello>getbg foo0.txt
+Hello>exit
+
+ps output : no background processes 
+
+................ End of Testcases ............................
+
+
+
+.................. relevant output of ps -j .............................
+
+1.1 When foreground process is running
+
+Palak  4463  2777  4463      0    1 S+   s000    0:00.01 ./client-shell
+Palak  4569  4463  4463      0    1 S+   s000    0:00.00 ./get-one-file-sig foo0.txt localhost 5000 nodisplay
+
+1.2 After foreground process terminates
+Palak  4463  2777  4463      0    1 S+   s000    0:00.01 ./client-shell
+
+2.1 background process running
+Palak  4731  4725  4731      0    1 S+   s003    0:00.01 ./client-shell
+Palak  4898  4731  4731      0    1 S+   s003    0:00.00 ./get-one-file-sig foo0.txt localhost 5000 nodisplay
+
+2.2 Before being reaped
+Palak  4731  4725  4731      0    1 S+   s003    0:00.01 ./client-shell
+Palak  4898  4731  4731      0    1 Z+   s003    0:00.00 (get-one-file-sig)
+
+3. Before exit, if background processes are running, they are reaped on exit.
+
+4. For pipe : 'getfl foo0.txt | cat'
+2 child processes of client shell are created : cat and ./get-one-file-sig
+Both terminate after respective processes are finished
+
+
+
+
